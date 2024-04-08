@@ -13,10 +13,6 @@ def stata_to_csv(uploaded_file):
     return df
 
 def plot_questions(data, columns):
-
-    #columns = input_string.upper().split(',')
-    #columns = [col.strip() for col in columns]
-    
     for col in columns:
         data_counts = data[f'{col}'].value_counts(normalize=False)
         if not data_counts.empty:
@@ -33,26 +29,31 @@ def plot_questions(data, columns):
             st.plotly_chart(fig)
         else:
             st.write('No data avaliable')
+
+
+
 uploaded_file = st.file_uploader('Upload dta (stata) file')
-
-
 
 if uploaded_file:
     df = stata_to_csv(uploaded_file)
     columns_starting_with_q = [col for col in df.columns if col.startswith('Q')]
     options = st.multiselect("Please select columns", columns_starting_with_q)
+    st.write(df.head())
     if options:
-        st.write(df.head())
         st.sidebar.header('Please filter here:')
+        gender = st.sidebar.multiselect('Filter by gender:',
+                                        options=df['IR2a'].unique(),
+                                        default=df['IR2a'].unique())
         level = st.sidebar.multiselect('Filter by area:',
                                         options=df['Level'].unique(),
                                         default=df['Level'].unique())
         ethnicity = st.sidebar.multiselect('Filter by ethnicity:',
                                         options=df['Se11_1'].unique(),
                                         default=df['Se11_1'].unique())
-        gender = st.sidebar.multiselect('Filter by gender:',
-                                        options=df['IR2a'].unique(),
-                                        default=df['IR2a'].unique())        
-        df_selection = df.query('Level == @level & Se11_1 == @ethnicity & IR2a == @gender')
+        religion = st.sidebar.multiselect('Filter by religion:',
+                                        options=df['Se6'].unique(),
+                                        default=df['Se6'].unique())
+              
+        df_selection = df.query('Level == @level & Se11_1 == @ethnicity & IR2a == @gender & Se6 == @religion')
         
         plot_questions(df_selection, options)
